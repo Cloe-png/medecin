@@ -1,0 +1,179 @@
+﻿<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Medecin - RDV Mobile</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-noise"></div>
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        <div class="brand-text">
+          <span>Médecin</span>
+        </div>
+      </div>
+      <button class="ghost" id="logoutBtn" type="button">Déconnexion</button>
+    </header>
+
+    <main class="app">
+      <section class="hero">
+        <div>
+          <h1>Votre santé, sans attente.</h1>
+          <p>Localisez les cabinets, connectez-vous et réservez un rendez-vous en quelques minutes.</p>
+        </div>
+      </section>
+
+      <div class="status" id="status"></div>
+      <section class="page" id="page-map">
+        <div class="page-head">
+          <h2>Cabinets à proximité</h2>
+          <button class="ghost" id="refreshMap" type="button">Actualiser</button>
+        </div>
+        <div class="map-shell">
+          <div id="map" class="map"></div>
+          <aside class="poi-list" id="poiList"></aside>
+        </div>
+      </section>
+
+      <section class="page" id="page-login">
+        <div class="card">
+          <h2>Connexion patient</h2>
+          <form id="loginForm">
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="email" required />
+            </label>
+            <label>
+              Mot de passe
+              <input type="password" name="password" autocomplete="current-password" required />
+            </label>
+            <button class="primary" type="submit">Se connecter</button>
+          </form>
+          <p class="muted">Pas encore de compte ? <a href="#register">Inscription</a></p>
+        </div>
+      </section>
+
+      <section class="page" id="page-register">
+        <div class="card">
+          <h2>Inscription patient</h2>
+          <form id="registerForm">
+            <label>
+              Nom complet
+              <input type="text" name="name" autocomplete="name" required />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="email" required />
+            </label>
+            <label>
+              Téléphone
+              <input type="tel" name="phone" autocomplete="tel" required />
+            </label>
+            <label>
+              Mot de passe
+              <input type="password" name="password" autocomplete="new-password" required />
+            </label>
+            <button class="primary" type="submit">Créer mon compte</button>
+          </form>
+          <p class="muted">Déjà inscrit ? <a href="#login">Connexion</a></p>
+        </div>
+      </section>
+
+      <section class="page" id="page-profile">
+        <div class="page-head">
+          <div>
+          <h2>Profil patient</h2>
+          <p class="muted" id="profileSummary">Aucun patient connecté.</p>
+          </div>
+          <button class="ghost" id="refreshAppointments" type="button">Actualiser</button>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h3>Mes rendez-vous</h3>
+            <div id="appointments"></div>
+          </div>
+          <div class="card">
+            <h3>Modifier un rendez-vous</h3>
+            <form id="updateForm">
+              <label>
+                Rendez-vous
+                <select id="updateAppointmentId" required></select>
+              </label>
+              <label>
+                Nouvelle date
+                <input type="date" id="updateDate" required />
+              </label>
+              <label>
+                Nouvelle heure
+                <input type="time" id="updateTime" step="1200" required />
+              </label>
+              <button class="primary" type="submit">Mettre à jour</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-book">
+        <div class="page-head">
+          <h2>Réserver un rendez-vous</h2>
+          <button class="ghost" id="refreshSlots" type="button">Voir les créneaux</button>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <form id="bookingForm">
+              <label>
+                Praticien
+                <select id="practitionerSelect" required></select>
+              </label>
+              <label>
+                Date
+                <input type="date" id="bookingDate" required />
+              </label>
+              <div class="slot-grid" id="slotGrid"></div>
+              <input type="hidden" id="bookingTime" required />
+              <button class="primary" type="submit">Confirmer la réservation</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Détails praticien</h3>
+            <div id="practitionerDetails" class="muted">Sélectionnez un praticien pour voir ses informations.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="#map" data-route="map">Carte</a>
+      <a href="#book" data-route="book">Réserver</a>
+      <a href="#profile" data-route="profile">Profil</a>
+      <a href="#login" data-route="login">Connexion</a>
+    </nav>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+      const isLocalFileApp = window.location.protocol === "file:";
+      const isCordovaBrowserServer =
+        window.location.hostname === "localhost" && window.location.port === "8000";
+
+      window.APP_CONFIG = {
+        API_BASE:
+          isLocalFileApp || isCordovaBrowserServer
+            ? "http://127.0.0.1:8001/api"
+            : "/api",
+        PRACTITIONERS_DATA_URL: "https://data.issy.com/api/explore/v2.1/catalog/datasets/medecins-generalistes-et-infirmiers/records?limit=100",
+        DEMO_FALLBACK: false
+      };
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>
+
+
